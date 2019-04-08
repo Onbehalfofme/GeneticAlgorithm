@@ -5,9 +5,9 @@ import random
 from PIL import Image, ImageDraw
 
 generations = 1000000
-example = Image.open('Malysh.png')
+example = Image.open('4.2.03.tiff')
 
-example = example.convert('RGBA')
+example = example.convert('RGB')
 width, height = example.size
 
 colors = example.getcolors(width*height)
@@ -20,17 +20,16 @@ def create_genome():
     radius = 7
     number = random.randint(0, len(colors) - 1)
     frequency, color = colors[number]
-    alpha = 200
 
-    circles.append([center, radius, color[0], color[1], color[2], alpha])
+    circles.append([center, radius, color[0], color[1], color[2]])
 
     return circles
 
 
 def render_descendant(genome):
     out = Image.new("RGBA", (width, height), "white")
-    base = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-    draw = ImageDraw.Draw(base)
+
+    draw = ImageDraw.Draw(out)
 
     for item in genome:
         x, y = item[0]
@@ -38,13 +37,10 @@ def render_descendant(genome):
         r = item[2]
         g = item[3]
         b = item[4]
-        a = item[5]
 
-        color = (r, g, b, a)
+        color = (r, g, b)
 
         draw.ellipse([x - radius, y - radius, x + radius, y + radius], fill=color)
-        out = Image.alpha_composite(out, base)
-
     return out
 
 
@@ -55,9 +51,8 @@ def mutate(origin):
     radius = 7
     number = random.randint(0, len(colors) - 1)
     frequency, color = colors[number]
-    alpha = 200
 
-    copy.append([center, radius, color[0], color[1], color[2], alpha])
+    copy.append([center, radius, color[0], color[1], color[2]])
 
     return copy, center, radius
 
@@ -87,15 +82,15 @@ def fitness(original, new, center, radius):
 
     for x in range(x0, x1):
         for y in range(y0, y1):
-            r1, g1, b1, a1 = original.getpixel((x, y))
-            r2, g2, b2, a2 = new.getpixel((x, y))
+            r1, g1, b1 = original.getpixel((x, y))
+
+            r2, g2, b2, a = new.getpixel((x, y))
 
             delta_red = (r1 - r2) ** 2
             delta_green = (g1 - g2) ** 2
             delta_blue = (b1 - b2) ** 2
-            delta_alpha = (a1 - a2) ** 2
 
-            pixel_fitness = math.sqrt(delta_red + delta_green + delta_blue + delta_alpha)
+            pixel_fitness = math.sqrt(delta_red + delta_green + delta_blue)
 
             fitnes += pixel_fitness
 
